@@ -36,6 +36,21 @@ local function GrantPermission(houseNumber)
     end
 end
 
+-- Função para desbanir de casas
+local function UnBanPlayerFromHouse(houseNumber)
+    local args = {
+        [1] = "UnBanPlayerFromHouse",
+        [2] = game:GetService("Players").LocalPlayer,
+        [3] = game:GetService("Players").LocalPlayer
+    }
+    local remoteEvent = game:GetService("ReplicatedStorage").RE:FindFirstChild("1Playe1rTrigge1rEven1t")
+    if remoteEvent then
+        remoteEvent:FireServer(unpack(args))
+    else
+        print("Evento remoto não encontrado.")
+    end
+end
+
 -- Função para mudar o personagem para Korblox
 function GiveKorblox()
     local remote = game:GetService("ReplicatedStorage").RE:FindFirstChild("1Avata1rOrigina1l")
@@ -137,14 +152,63 @@ local function ChangeNameColorRP(color)
     }
     game:GetService("ReplicatedStorage").RE:FindFirstChild("1RPNam1eColo1r"):FireServer(unpack(args))
 end
--- Aba de Personagem
+
+-- Função para teleportar para coordenadas específicas
+local function TeleportToCoordinates(x, y, z)
+    local player = game.Players.LocalPlayer
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(x, y, z)
+    end
+end
+
+-- Função para ajustar a velocidade do player
+local function SetPlayerSpeed(speed)
+    local player = game.Players.LocalPlayer
+    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = speed
+    end
+end
+
+-- Função para ativar/desativar noclip
+local noclipEnabled = false
+
+local function ToggleNoclip(enabled)
+    noclipEnabled = enabled
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    
+    game:GetService("RunService").Stepped:Connect(function()
+        if noclipEnabled then
+            for _, v in pairs(character:GetDescendants()) do
+                if v:IsA("BasePart") and v.CanCollide == true then
+                    v.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+
+-- Variáveis e funções para super jump
+local superJumpEnabled = false
+
+local function ToggleSuperJump(enabled)
+    superJumpEnabled = enabled
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+
+    if superJumpEnabled then
+        character.Humanoid.JumpPower = 300
+    else
+        character.Humanoid.JumpPower = 50
+    end
+end
 local CharacterTab = Window:MakeTab({
     Name = "Character",
     Icon = "rbxassetid://4483362458",
     PremiumOnly = false
 })
 
--- Primeira Seção para Korblox
 CharacterTab:AddSection({
     Name = "Korblox"
 })
@@ -155,7 +219,6 @@ CharacterTab:AddButton({
     end
 })
 
--- Segunda Seção para Zumbi
 CharacterTab:AddSection({
     Name = "Zombie"
 })
@@ -166,7 +229,6 @@ CharacterTab:AddButton({
     end
 })
 
--- Terceira Seção para Perna de Gelo
 CharacterTab:AddSection({
     Name = "Ice Leg"
 })
@@ -177,40 +239,82 @@ CharacterTab:AddButton({
     end
 })
 
--- Aba de Permissão
+CharacterTab:AddSection({
+    Name = "Ice Arm"
+})
+CharacterTab:AddButton({
+    Name = "Give Ice Arm",
+    Callback = function()
+        -- Adicione sua função para Give Ice Arm aqui
+    end
+})
+
+CharacterTab:AddSlider({
+    Name = "Adjust Speed",
+    Min = 16,
+    Max = 300,
+    Default = 16,
+    Color = Color3.fromRGB(255, 255, 255),
+    Increment = 1,
+    ValueName = "Speed",
+    Callback = function(value)
+        SetPlayerSpeed(value)
+    end
+})
 local PermissionTab = Window:MakeTab({
     Name = "Permission",
     Icon = "rbxassetid://4483362458",
     PremiumOnly = false
 })
+
 PermissionTab:AddSection({
     Name = "Select House"
 })
+
 local selectedHouse = 1
 PermissionTab:AddDropdown({
     Name = "Choose House",
     Options = {"House 1", "House 2", "House 3", "House 4", "House 5", "House 6", "House 7", "House 8", "House 9", "House 10", "House 11", "House 12", "House 13", "House 14", "House 15", "House 16", "House 17", "House 18", "House 19", "House 20", "House 21", "House 22", "House 23", "House 24", "House 25", "House 26", "House 27", "House 28", "House 29", "House 30", "House 31", "House 32", "House 33", "House 34", "House 35", "House 36", "House 37"},
     Callback = function(value)
         selectedHouse = tonumber(string.match(value, "%d+"))
-    end    
+    end
 })
+
 PermissionTab:AddButton({
     Name = "Grant Permission",
     Callback = function()
         GrantPermission(selectedHouse)
     end
 })
--- Aba de Teleporte
+
+PermissionTab:AddSection({
+    Name = "Unban from House"
+})
+
+PermissionTab:AddDropdown({
+    Name = "Choose House to Unban",
+    Options = {"House 1", "House 2", "House 3", "House 4", "House 5", "House 6", "House 7", "House 8", "House 9", "House 10", "House 11", "House 12", "House 13", "House 14", "House 15", "House 16", "House 17", "House 18", "House 19", "House 20", "House 21", "House 22", "House 23", "House 24", "House 25", "House 26", "House 27", "House 28", "House 29", "House 30", "House 31", "House 32", "House 33", "House 34", "House 35", "House 36", "House 37"},
+    Callback = function(value)
+        selectedHouse = tonumber(string.match(value, "%d+"))
+    end
+})
+
+PermissionTab:AddButton({
+    Name = "Unban from House",
+    Callback = function()
+        UnBanPlayerFromHouse(selectedHouse)
+    end
+})
 local TeleportTab = Window:MakeTab({
     Name = "Teleport",
     Icon = "rbxassetid://4483362458",
     PremiumOnly = false
 })
 
--- Seção para Teleportar para Players
 TeleportTab:AddSection({
     Name = "Select Player"
 })
+
 local selectedPlayer = ""
 local playerDropdown = TeleportTab:AddDropdown({
     Name = "Choose Player",
@@ -220,7 +324,6 @@ local playerDropdown = TeleportTab:AddDropdown({
     end
 })
 
--- Função para atualizar a lista de players dinamicamente
 local function UpdatePlayerList()
     local players = game:GetService("Players"):GetPlayers()
     local playerNames = {}
@@ -233,12 +336,10 @@ local function UpdatePlayerList()
     end
 end
 
--- Atualizar a lista de players dinamicamente quando players entram ou saem
 game:GetService("Players").PlayerAdded:Connect(UpdatePlayerList)
 game:GetService("Players").PlayerRemoving:Connect(UpdatePlayerList)
 UpdatePlayerList()
 
--- Adicionando um Botão para Teleportar para o Player Selecionado
 TeleportTab:AddButton({
     Name = "Teleport",
     Callback = function()
@@ -246,7 +347,6 @@ TeleportTab:AddButton({
     end
 })
 
--- Adicionando um Botão para Assistir o Player Selecionado
 TeleportTab:AddButton({
     Name = "Spectate",
     Callback = function()
@@ -254,7 +354,6 @@ TeleportTab:AddButton({
     end
 })
 
--- Adicionando um Botão para Parar de Assistir
 TeleportTab:AddButton({
     Name = "Stop Spectating",
     Callback = function()
@@ -262,7 +361,6 @@ TeleportTab:AddButton({
     end
 })
 
--- Adicionando um Botão para Atualizar a Lista de Players
 TeleportTab:AddButton({
     Name = "Refresh Player List",
     Callback = function()
@@ -270,14 +368,51 @@ TeleportTab:AddButton({
     end
 })
 
--- Aba de Name RP
+TeleportTab:AddSection({
+    Name = "Teleport to Coordinates"
+})
+
+local xCoordinate, yCoordinate, zCoordinate = 0, 0, 0
+
+TeleportTab:AddTextbox({
+    Name = "Enter X Coordinate",
+    Default = "0",
+    TextDisappear = true,
+    Callback = function(value)
+        xCoordinate = tonumber(value)
+    end
+})
+
+TeleportTab:AddTextbox({
+    Name = "Enter Y Coordinate",
+    Default = "0",
+    TextDisappear = true,
+    Callback = function(value)
+        yCoordinate = tonumber(value)
+    end
+})
+
+TeleportTab:AddTextbox({
+    Name = "Enter Z Coordinate",
+    Default = "0",
+    TextDisappear = true,
+    Callback = function(value)
+        zCoordinate = tonumber(value)
+    end
+})
+
+TeleportTab:AddButton({
+    Name = "Teleport to Coordinates",
+    Callback = function()
+        TeleportToCoordinates(xCoordinate, yCoordinate, zCoordinate)
+    end
+})
 local NameRPtab = Window:MakeTab({
     Name = "Name RP",
     Icon = "rbxassetid://4483362458",
     PremiumOnly = false
 })
 
--- Seção para definir o Name RP
 NameRPtab:AddSection({
     Name = "Set Name RP"
 })
@@ -299,17 +434,51 @@ NameRPtab:AddButton({
     end
 })
 
--- Seção para definir a cor do Name RP
 NameRPtab:AddSection({
     Name = "Set Name RP Color"
 })
 
-local selectedColor = Color3.new(1, 1, 1) -- Cor branca por padrão
+local selectedColor = Color3.new(1, 1, 1)
 NameRPtab:AddColorPicker({
     Name = "Choose Name RP Color",
     Default = selectedColor,
     Callback = function(color)
         selectedColor = color
         ChangeNameColorRP(selectedColor)
+    end
+})
+local NoclipTab = Window:MakeTab({
+    Name = "Noclip",
+    Icon = "rbxassetid://4483362458",
+    PremiumOnly = false
+})
+
+NoclipTab:AddSection({
+    Name = "Noclip"
+})
+
+NoclipTab:AddToggle({
+    Name = "Toggle Noclip",
+    Default = false,
+    Callback = function(state)
+        ToggleNoclip(state)
+    end
+})
+
+local SuperJumpTab = Window:MakeTab({
+    Name = "Super Jump",
+    Icon = "rbxassetid://4483362458",
+    PremiumOnly = false
+})
+
+SuperJumpTab:AddSection({
+    Name = "Super Jump"
+})
+
+SuperJumpTab:AddToggle({
+    Name = "Toggle Super Jump",
+    Default = false,
+    Callback = function(state)
+        ToggleSuperJump(state)
     end
 })
